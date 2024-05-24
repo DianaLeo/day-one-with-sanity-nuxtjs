@@ -19,12 +19,6 @@ const EVENT_QUERY = `*[
   venue->
 }`;
 
-// function urlFor(source):ImageUrlBuilder {
-//   const sanity = useSanity()
-//   const builder = imageUrlBuilder(sanity.client)
-//   return builder.image(source)
-// }
-
 const {data: event} = await useSanityQuery<SanityDocument[]>(EVENT_QUERY,{
   slug: route.params.slug,
 })
@@ -34,6 +28,8 @@ const {
   date,
   headline,
   image,
+  video,
+  // file,
   details,
   content,
   eventType,
@@ -41,9 +37,12 @@ const {
   venue,
   tickets,
 } = event.value
+console.log("image=",image.asset._ref)
+console.log("video=",video.asset._ref)
+// console.log("file=",file.asset._ref)
 
 const eventImageUrl = image
-    ? urlFor(image)?.width(550).height(310).url()
+    ? urlFor(image)?.quality(100).width(1100).height(620).url()
     : null;
 const eventDate = new Date(date).toDateString();
 const eventTime = new Date(date).toLocaleTimeString();
@@ -68,13 +67,42 @@ const serializers = {
       <NuxtLink to="/">← Back to events</NuxtLink>
     </div>
     <div class="grid items-top gap-12 sm:grid-cols-2">
-      <img
-          :src=" eventImageUrl || 'https://via.placeholder.com/550x310'"
-          :alt="name || 'Event'"
-          class="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full"
-          height="310"
-          width="550"
-      />
+      <div>
+        <img
+            :src=" eventImageUrl || 'https://via.placeholder.com/550x310'"
+            :alt="name || 'Event'"
+            class="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full"
+            height="310"
+            width="550"
+            loading="lazy"
+        />
+<!--        <SanityImage v-if="image" :asset-id="image.asset._ref" auto="format">-->
+<!--          <template #default="{ src }">-->
+<!--            <img-->
+<!--                :src="src"-->
+<!--                :alt="name || 'Event'"-->
+<!--                class="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full"-->
+<!--                height="310"-->
+<!--                width="550"-->
+<!--                style="image-resolution: 300dpi"-->
+<!--                loading="lazy"-->
+<!--            />-->
+<!--          </template>-->
+<!--        </SanityImage>-->
+        <SanityFile v-if="video" :asset-id="video.asset._ref">
+          <template #default="{ src }">
+            <video width="550" height="150" autoplay muted>
+              <source :src="src" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          </template>
+        </SanityFile>
+<!--        <SanityFile v-if="file" :asset-id="file.asset._ref">-->
+<!--          <template #default="{ src }">-->
+<!--            <a :href="src">Click here to read this text file</a>-->
+<!--          </template>-->
+<!--        </SanityFile>-->
+      </div>
       <div class="flex flex-col justify-center space-y-4">
         <div class="space-y-4">
           <div v-if="eventType" class="inline-block rounded-lg bg-gray-100 px-3 py-1 text-sm dark:bg-gray-800 capitalize">
